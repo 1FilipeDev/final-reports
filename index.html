@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FireWatch – Monitoramento de Queimadas</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="wildfire.png" type="image/png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body>
+
+<!-- ── HEADER ─────────────────────────────────────────────── -->
+<header>
+  <a href="index.html" class="header-brand">
+    <span class="logo-icon">🔥</span>
+    <span class="logo-text">Fire<span>Reports</span></span>
+  </a>
+  <div class="header-right">
+    <button id="themeToggle" class="btn-icon" title="Alternar tema">🌙</button>
+    <button id="menuToggle"  class="btn-icon" title="Menu">☰</button>
+  </div>
+</header>
+
+<!-- ── OVERLAY ─────────────────────────────────────────────── -->
+<div class="menu-overlay" id="menuOverlay"></div>
+
+<!-- ── MENU LATERAL ────────────────────────────────────────── -->
+<div id="sideMenu" class="side-menu">
+  <div class="side-menu-header">
+    <div class="side-menu-user" id="menuUserInfo">
+      <!-- preenchido via JS -->
+    </div>
+  </div>
+  <nav>
+    <a href="index.html">   <span class="nav-icon">🗺️</span> Mapa </a>
+    <a href="profile.html"> <span class="nav-icon">👤</span> Meu Perfil </a>
+    <a href="login.html" id="navLogin">  <span class="nav-icon">🔐</span> Login </a>
+    <a href="create_account.html" id="navRegister"><span class="nav-icon">📝</span> Criar Conta </a>
+  </nav>
+  <div class="side-menu-footer">
+    <button class="btn btn-danger btn-full" id="logoutBtn" style="display:none">⏏ Sair</button>
+  </div>
+</div>
+
+<!-- ── CONTEÚDO PRINCIPAL ──────────────────────────────────── -->
+<div class="main-content">
+
+  <!-- MAPA -->
+  <div id="map"></div>
+
+  <!-- PAINEL -->
+  <div class="panel">
+
+    <!-- HUD -->
+    <div class="hud">
+      <div class="hud-card alto">
+        <div class="hud-num" id="countAlto">0</div>
+        <div class="hud-label">🔴 Alto</div>
+      </div>
+      <div class="hud-card medio">
+        <div class="hud-num" id="countMedio">0</div>
+        <div class="hud-label">🟠 Médio</div>
+      </div>
+      <div class="hud-card baixo">
+        <div class="hud-num" id="countBaixo">0</div>
+        <div class="hud-label">🟡 Baixo</div>
+      </div>
+      <div class="hud-card total">
+        <div class="hud-num" id="countTotal">0</div>
+        <div class="hud-label">📊 Total</div>
+      </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">Todos</button>
+      <button class="filter-btn f-alto"  data-filter="3">🔴 Alto</button>
+      <button class="filter-btn f-medio" data-filter="2">🟠 Médio</button>
+      <button class="filter-btn f-baixo" data-filter="1">🟡 Baixo</button>
+    </div>
+
+    <!-- FORMULÁRIO -->
+    <div class="panel-header">
+      <div class="panel-title">🔥 Nova Denúncia</div>
+    </div>
+
+    <div class="panel-body">
+      <form id="reportForm">
+
+        <!-- Localização -->
+        <div class="form-group">
+          <label>Localização</label>
+          <div class="input-row">
+            <input type="text" id="location" placeholder="Endereço, CEP ou clique no mapa…" required>
+            <button type="button" id="useLocation" class="btn btn-ghost" title="Usar minha localização" style="flex-shrink:0;background:var(--primary);color:#fff;border:none;">📍</button>
+          </div>
+        </div>
+
+        <!-- Nível -->
+        <div class="form-group">
+          <label>Nível de Gravidade</label>
+          <div class="level-selector">
+            <div class="level-option baixo">
+              <input type="radio" name="level" id="lvl1" value="1" checked>
+              <label for="lvl1"><span class="lvl-icon">🟡</span>Baixo</label>
+            </div>
+            <div class="level-option medio">
+              <input type="radio" name="level" id="lvl2" value="2">
+              <label for="lvl2"><span class="lvl-icon">🟠</span>Médio</label>
+            </div>
+            <div class="level-option alto">
+              <input type="radio" name="level" id="lvl3" value="3">
+              <label for="lvl3"><span class="lvl-icon">🔴</span>Alto</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Categoria -->
+        <div class="form-group">
+          <label>Tipo de Local</label>
+          <select id="category" name="category">
+            <option value="lote">🏚️ Lote</option>
+            <option value="mata">🌿 Mata / Cerrado</option>
+            <option value="casa">🏠 Residência</option>
+            <option value="estrada">🛣️ Beira de Estrada</option>
+            <option value="outros">📌 Outros</option>
+          </select>
+        </div>
+
+        <!-- Outro tipo (condicional) -->
+        <div class="form-group" id="otherCategoryGroup" style="display:none">
+          <label>Especifique</label>
+          <input type="text" id="otherCategory" placeholder="Descreva o tipo de local…">
+        </div>
+
+        <!-- Foto -->
+        <div class="form-group">
+          <label>Foto (opcional)</label>
+          <div class="file-upload">
+            <input type="file" id="photo" accept="image/*">
+            <label for="photo" class="file-upload-label">📷 Selecionar imagem</label>
+            <span id="photoName"></span>
+          </div>
+        </div>
+
+        <!-- Info adicional -->
+        <div class="form-group">
+          <label>Descrição</label>
+          <textarea id="additionalInfo" placeholder="Descreva o que está vendo…"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">🔥 Enviar Denúncia</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toastContainer"></div>
+
+<footer>© 2026 PROJETO ADS III | Desenvolvido por Filipe</footer>
+
+<script src="db.js"></script>
+<script src="auth.js"></script>
+<script src="scripts.js"></script>
+</body>
+</html>

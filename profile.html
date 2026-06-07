@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu Perfil – FireWatch</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <a href="index.html" class="header-brand">
+    <span class="logo-icon">🔥</span>
+    <span class="logo-text">Fire<span>Reports</span></span>
+  </a>
+  <div class="header-right">
+    <button id="themeToggle" class="btn-icon">🌙</button>
+    <button id="menuToggle"  class="btn-icon">☰</button>
+  </div>
+</header>
+<div class="menu-overlay" id="menuOverlay"></div>
+<div id="sideMenu" class="side-menu">
+  <div class="side-menu-header">
+    <div class="side-menu-user" id="menuUserInfo"></div>
+  </div>
+  <nav>
+    <a href="index.html">   <span class="nav-icon">🗺️</span> Mapa</a>
+    <a href="profile.html"> <span class="nav-icon">👤</span> Meu Perfil</a>
+    <a href="login.html" id="navLogin">        <span class="nav-icon">🔐</span> Login</a>
+    <a href="create_account.html" id="navRegister"><span class="nav-icon">📝</span> Criar Conta</a>
+  </nav>
+  <div class="side-menu-footer">
+    <button class="btn btn-danger btn-full" id="logoutBtn" style="display:none">⏏ Sair</button>
+  </div>
+</div>
+
+<div style="background:var(--bg);min-height:calc(100vh - 56px);padding-bottom:40px;">
+  <div class="profile-page">
+
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="profile-avatar" id="profileAvatar">?</div>
+        <div class="profile-info">
+          <h2 id="profileName">Carregando…</h2>
+          <p id="profileEmail">–</p>
+          <p id="profileSince" style="font-size:12px;color:var(--text2);margin-top:4px">–</p>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-item">
+          <div class="num" id="statTotal">–</div>
+          <div class="lbl">Denúncias</div>
+        </div>
+        <div class="stat-item">
+          <div class="num" id="statAlto" style="color:var(--danger)">–</div>
+          <div class="lbl">Alto</div>
+        </div>
+        <div class="stat-item">
+          <div class="num" id="statMedio" style="color:var(--warn)">–</div>
+          <div class="lbl">Médio</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-card">
+      <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px;">
+        📋 Minhas Denúncias
+      </h3>
+      <div class="report-list" id="myReports">
+        <p style="color:var(--text2);font-size:14px;">⏳ Carregando…</p>
+      </div>
+    </div>
+
+    <div class="profile-card">
+      <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px;">
+        ⚙️ Conta
+      </h3>
+      <button class="btn btn-danger" id="logoutBtnProfile">⏏ Sair da conta</button>
+    </div>
+
+  </div>
+</div>
+
+<div id="toastContainer"></div>
+<footer>© 2026 PROJETO ADS III | Desenvolvido por Filipe</footer>
+
+<script src="db.js"></script>
+<script src="auth.js"></script>
+<script>
+  const session = DB.getSession();
+  if (!session) { window.location.href = 'login.html'; }
+
+  // ← tudo dentro de async para poder usar await
+  async function loadProfile() {
+    const user    = await DB.getUserById(session.id);   // ← await corrigido
+    const reports = await DB.getReportsByUser(session.id); // ← await + método correto
+
+    // Perfil
+    document.getElementById('profileAvatar').textContent =
+      session.name.charAt(0).toUpperCase();
+    document.getElementById('profileName').textContent  =
+      user ? user.name  : session.name;
+    document.getElementById('profileEmail').textContent =
+      user ? user.email : session.email;
+    document.getElementById('profileSince').textContent =
+      user && user.created_at
+        ? 'Membro desde ' + new Date(user.created_at).toLocaleDateString('pt-BR')
+        : '';
+
+    // Stats
+    document.getElementById('statTotal').textContent =
+      reports.length;
+    document.getElementById('statAlto').textContent  =
+      reports.filter(r => r.level === '3').length;
+    document.getElementById('statMedio').textContent =
+      reports.filter(r => r.level === '2').length;
+
+    // Lista de denúncias
+    const listEl   = document.getElementById('myReports');
+    const levelMap = { '1': 'baixo', '2': 'medio', '3': 'alto' };
+    const labelMap = { '1': 'Baixo',  '2': 'Médio', '3': 'Alto' };
+
+    if (reports.length === 0) {
+      listEl.innerHTML =
+        '<p style="color:var(--text2);font-size:14px;">Nenhuma denúncia registrada ainda.</p>';
+    } else {
+      listEl.innerHTML = reports.map(r => `
+        <div class="report-item ${levelMap[r.level] || ''}">
+          <span class="ri-badge">${labelMap[r.level] || r.level}</span>
+          <span class="ri-info">${r.category} – ${r.info || 'Sem descrição'}</span>
+          <span class="ri-date">${new Date(r.created_at).toLocaleDateString('pt-BR')}</span>
+        </div>
+      `).join('');
+    }
+  }
+
+  loadProfile();
+
+  document.getElementById('logoutBtnProfile').addEventListener('click', () => {
+    DB.logout();
+    window.location.href = 'login.html';
+  });
+</script>
+</body>
+</html>
