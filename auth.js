@@ -1,7 +1,4 @@
-// ============================================================
-//  auth.js  — Utilitários compartilhados (menu, tema, toast)
-//  Depende de: db.js carregado antes
-// ============================================================
+
 
 // ── TOAST ─────────────────────────────────────────────────────
 function showToast(msg, type = 'info', duration = 3500) {
