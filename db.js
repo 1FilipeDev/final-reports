@@ -1,11 +1,7 @@
-// ============================================================
-//  db.js  — Banco de dados Supabase + lógica de admin
-// ============================================================
-
 const SUPABASE_URL  = 'https://dkuglseelblsxwrpdmru.supabase.co';
 const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdWdsc2VlbGJsc3h3cnBkbXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNDc2ODMsImV4cCI6MjA5NTkyMzY4M30.qqfrkREZc1K4mbb33dR0xlhEKcf2RRgunGiQWJOszjg';
 
-// ⚠️ SENHA SECRETA DO ADMIN — altere para uma senha forte
+// SENHA ADMIN
 const ADMIN_PASSWORD = 'admin';
 
 const HEADERS = {
