@@ -1,8 +1,3 @@
-// ============================================================
-//  scripts.js  — Lógica do mapa (index.html)
-//  Depende de: db.js e auth.js carregados antes
-// ============================================================
-
 // ── MAPA ─────────────────────────────────────────────────────
 const map = L.map('map').setView([-16.67, -49.25], 13);
 
@@ -15,7 +10,6 @@ if (localStorage.getItem('theme') === 'dark') {
   darkMap.addTo(map);
 }
 
-// Atualiza mapa quando auth.js muda o tema
 document.addEventListener('themeChanged', (e) => {
   if (e.detail.dark) { map.removeLayer(lightMap); darkMap.addTo(map); }
   else               { map.removeLayer(darkMap);  lightMap.addTo(map); }
